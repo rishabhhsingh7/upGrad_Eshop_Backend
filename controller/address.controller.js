@@ -84,3 +84,20 @@ exports.addAddress = (req, res) => {
       res.status(httpStatus.StatusCodes.BAD_REQUEST).json().end();
     });
 };
+
+exports.getAddress = (req, res) => {
+  Addresses.find({ user: { _id: req.user._id } })
+    .then((response) => {
+      if (response.length === 0) {
+        res.setHeader("Content-Type", "application/json");
+        res.status(httpStatus.StatusCodes.NOT_FOUND).json().end();
+        return;
+      }
+      res.setHeader("Content-Type", "application/json");
+      res.status(httpStatus.StatusCodes.OK).json(response).end();
+    })
+    .catch((err) => {
+      res.setHeader("Content-Type", "application/json");
+      res.status(httpStatus.StatusCodes.BAD_REQUEST).json().end();
+    });
+};

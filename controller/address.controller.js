@@ -6,9 +6,9 @@ const {
   validateContact,
 } = require("../middleware/validation");
 
+//this api is responsible for inserting the address of the user to the Database
 exports.addAddress = (req, res) => {
   //After authenticating the user we store all the information to db
-
   //validate the zip code
   if (!validateZipCode(req.body.zipCode)) {
     res.setHeader("Content-Type", "application/json");

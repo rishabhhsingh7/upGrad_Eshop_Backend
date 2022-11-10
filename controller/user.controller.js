@@ -36,7 +36,7 @@ exports.signUp = (req, res) => {
       if (result.length != 0) {
         res.setHeader("Content-Type", "application/json");
         res
-          .status(httpStatus.StatusCodes.FORBIDDEN)
+          .status(httpStatus.StatusCodes.BAD_REQUEST)
           .json({
             message: "Try any other email, this email is already registered!",
           })
@@ -148,6 +148,7 @@ exports.login = (req, res) => {
                 email: response[0].email,
                 name: response[0].first_name + " " + response[0].last_name,
                 isAuthenticated: true,
+                role: response[0].role,
               })
               .end();
           }

@@ -9,6 +9,7 @@ const cors = require("cors");
 //using the cors middleware the port that the frontend would run is 3000
 const corsOption = {
   origin: "http://localhost:3000",
+  exposedHeaders: "x-auth-token",
 };
 
 app.use(cors(corsOption));

@@ -89,7 +89,7 @@ exports.searchProductsCategories = (req, res) => {
 //Get Product by Product ID - “/products/{id}”
 exports.searchProductByID = (req, res) => {
   //Find the products with the given id
-  Products.find({ productId: req.params.id })
+  Products.find({ _id: req.params.id })
     .then((product) => {
       if (product == null) {
         res.setHeader("Content-Type", "application/json");
@@ -184,9 +184,7 @@ exports.updateProduct = (req, res) => {
 
   //else update the product
   //find and update the product
-  Products.findOneAndUpdate({ productID: req.params.id }, updateData, {
-    new: true,
-  })
+  Products.findOneAndUpdate({ _id: req.params.id }, updateData, { new: true })
     .then((updatedProductData) => {
       res.setHeader("Content-Type", "aplication/json");
       res.status(httpStatus.StatusCodes.OK).json(updatedProductData).end();
@@ -216,7 +214,7 @@ exports.deleteProduct = (req, res) => {
   }
 
   //else find the product with given id and delete it
-  Products.findOne({ productId: req.params.id })
+  Products.findOne({ _id: req.params.id })
     .then((product) => {
       if (product == null) {
         res.setHeader("Content-Type", "application/json");
@@ -228,7 +226,7 @@ exports.deleteProduct = (req, res) => {
       }
 
       //else delete the product
-      Products.findOneAndDelete({ productID: req.params.id })
+      Products.findOneAndDelete({ _id: req.params.id })
         .then(() => {
           res.setHeader("Content-Type", "application/json");
           res

@@ -23,7 +23,7 @@ exports.saveOrder = (req, res) => {
   order.orderDate = Date.now();
 
   //find the products
-  Products.find({ productId: req.body.productId })
+  Products.find({ _id: req.body.productId })
     .then((product) => {
       //if the product id does not exists
       if (product == null) {

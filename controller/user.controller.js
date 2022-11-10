@@ -1,32 +1,16 @@
-require("dotenv").config();
 const db = require("../models");
-const mongoose = require("mongoose");
+const Users = db.users;
 const httpStatus = require("http-status-codes");
 const bcrypt = require("bcrypt");
 const { atob } = require("b2a");
-const jwt = require("jsonwebtoken");
-const secret = "my secret";
-const Users = db.users;
-
-//function to validate the email return true if valid and false otherwise
-const validateEmail = (email) => {
-  //regex for validating email
-  const regx = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-z]{2,6})/;
-  var result = regx.test(email);
-  return result;
-};
-
-//function to validate the user's phone number
-const validateContact = (contact) => {
-  //regex for validating phone number
-  const regex = /^(\+\d{1,3}[- ]?)?\d{10}$/;
-  return regex.test(contact);
-};
+const { generateAccessToken } = require("../middleware/auth");
+const { validateEmail, validateContact } = require("../middleware/validation");
 
 exports.signUp = (req, res) => {
   //validate the email
   var isEmailValid = validateEmail(req.body.email);
   if (!isEmailValid) {
+    console.log("Email is invalid");
     res.setHeader("Content-Type", "application/json");
     res
       .status(httpStatus.StatusCodes.BAD_REQUEST)
@@ -37,6 +21,7 @@ exports.signUp = (req, res) => {
 
   //validate phone number
   if (!validateContact(req.body.contactNumber)) {
+    console.log("Contact is not valid");
     res.setHeader("Content-Type", "application/json");
     res
       .status(httpStatus.StatusCodes.BAD_REQUEST)
@@ -46,7 +31,7 @@ exports.signUp = (req, res) => {
   }
 
   //find user by email if user is there then say user exists send
-  Users.find({ email: req.email })
+  Users.find({ email: req.body.email })
     .then((result) => {
       if (result.length != 0) {
         res.setHeader("Content-Type", "application/json");
@@ -64,8 +49,8 @@ exports.signUp = (req, res) => {
         email: req.body.email,
         first_name: req.body.first_name,
         last_name: req.body.last_name,
-        password: req.body.password,
         contact: req.body.contactNumber,
+        password: req.body.password,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
@@ -81,43 +66,49 @@ exports.signUp = (req, res) => {
         .then((hashPassword) => {
           data.password = hashPassword;
 
-          //count users already in db
-          Users.countDocuments({}).then((count) => {
-            //assign user id as count++
-            data.id = ++count;
-
-            //insert data to db
-            Users.insertMany([data])
-              .then((userData) => {
-                res.setHeader("Content-Type", "application/json");
-                res.status(httpStatus.StatusCodes.OK).json(userData[0]).end();
-              })
-              .catch((err) => {
-                //if error occurs while saving user to db
-                res.setHeader("Content-Type", "application/json");
-                res.status(httpStatus.StatusCodes.BAD_REQUEST).json().end();
-              });
-          });
+          //insert data to db
+          Users.insertMany([data])
+            .then((userData) => {
+              res.setHeader("Content-Type", "application/json");
+              res.status(httpStatus.StatusCodes.OK).json(userData[0]).end();
+            })
+            .catch((err) => {
+              //if error occurs while saving user to db
+              console.log(err);
+              res.setHeader("Content-Type", "application/json");
+              res
+                .status(httpStatus.StatusCodes.BAD_REQUEST)
+                .json({ message: "error while inserting" })
+                .end();
+            });
         })
         .catch((err) => {
           //handle error while encrypting password
+          console.log(err);
           res.setHeader("Content-Type", "applicatin/json");
-          res.status(httpStatus.StatusCodes.BAD_REQUEST).json().end();
+          res
+            .status(httpStatus.StatusCodes.BAD_REQUEST)
+            .json({ message: "error encryptin password" })
+            .end();
         });
     })
     .catch((err) => {
       //handle error while finding user with email if any
+      console.log(err);
       res.setHeader("Content-Type", "applicatin/json");
-      res.status(httpStatus.StatusCodes.BAD_REQUEST).json().end();
+      res
+        .status(httpStatus.StatusCodes.BAD_REQUEST)
+        .json({ message: "This is the error" })
+        .end();
     });
 };
 
 // POST /auth/login
 exports.login = (req, res) => {
-  console.log(req.body.password);
   //decrypt th encoded password from b2a
   var password = atob(req.body.password);
 
+  //find the user with the given email
   Users.find({ email: req.body.email })
     .then((response) => {
       if (response.length == 0) {
@@ -143,17 +134,16 @@ exports.login = (req, res) => {
           } else {
             //password entered match correctly
             //generate token
-            //define the payload as user.email
-            var user = {
-              email: response[0].email,
-            };
-            var token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+            //define the payload as user data in the response
+            var user = response[0].toJSON();
+
+            var token = generateAccessToken(user);
 
             //set the response header x-auth-token
             res.setHeader("Content-Type", "application/json");
             res.setHeader("x-auth-token", token);
             res
-              .status(200)
+              .status(httpStatus.StatusCodes.OK)
               .json({
                 email: response[0].email,
                 name: response[0].first_name + " " + response[0].last_name,

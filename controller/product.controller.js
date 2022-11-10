@@ -112,8 +112,10 @@ exports.searchProductByID = (req, res) => {
 
 //Save Product - “/products”
 exports.saveProduct = (req, res) => {
-  /**This end point require Authentication and only admin can access this endpoint,
-   *  after authenticating the user is stored in req.user object */
+  /*********************************************************************************
+      This end point require Authentication and only admin can access this endpoint,
+      after authenticating the user is stored in req.user object
+      ********************************************************************************* */
 
   //check if the request user is Admin
   if (req.user.role !== "admin") {
@@ -153,8 +155,10 @@ exports.saveProduct = (req, res) => {
 
 // Update Product Details- “/products/{id}”
 exports.updateProduct = (req, res) => {
-  /**This end point require Authentication and only admin can access this endpoint,
-   *  after authenticating the user is stored in req.user object */
+  /*********************************************************************************
+      This end point require Authentication and only admin can access this endpoint,
+      after authenticating the user is stored in req.user object
+      ********************************************************************************* */
 
   //if the request user is not admin send a forbidden response status
   if (req.user.role !== "admin") {
@@ -196,8 +200,10 @@ exports.updateProduct = (req, res) => {
 
 //Delete Product “/products/{id}”
 exports.deleteProduct = (req, res) => {
-  /**This end point require Authentication and only admin can access this endpoint,
-   *  after authenticating the user is stored in req.user object */
+  /*********************************************************************************
+      This end point require Authentication and only admin can access this endpoint,
+      after authenticating the user is stored in req.user object
+      ********************************************************************************* */
 
   //check if user is not admin
   if (req.user.role !== "admin") {

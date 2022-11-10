@@ -158,7 +158,7 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
     })
 
 
-    //Testing all products apis
+    //Testing all /products apis
     
     describe("TESTING /PRODUCTS APIS", ()=>{
 
@@ -224,14 +224,11 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
         //define the database products
         const Products = db.products;
 
-        //for deleting api
-        var productId;
-
         //testing POST /products api
         //This api requires authentication and admin authrization
         it("It should get status 200 OK when hitting POST /api/products",(done)=>{
              //this data is just dummy data
-             var data = {
+             let data = {
                "name": "Drone",
                "category": "Electronics",
                "manufacturer": "Electronics Corp",
@@ -256,9 +253,9 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
 
 
         //Testing PUT /products/:id api
-
+        //lets insert some dummy data before actually testing this api just to initialize the productId
         //create a new Product object
-        var data = new Products({
+        var data = Products({
             "productId": Math.floor(Math.random()*1000000),
             "name": "ProductName",
             "category": "Electronics",
@@ -266,17 +263,19 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
             "availableItems": 10,
             "price": 20000,
             "imageURL": "",
-            "description": "This is the initial description"
+            "description": "This is the initial description",
+            "createdAt": Date.now(),
+            "updatedAt": Date.now()
           })
 
     data.save();
 
         //This api requires authentication and admin authrization
-        it("It should get status 200 OK when hitting PUT /api/products",(done)=>{
+        it("It should get status 200 OK when hitting PUT /api/products/:id",(done)=>{
         
             //updated data
             var updatedData  = {
-            "name": "Drone",
+            "name": "ProductName",
             "category": "Electronics",
             "manufacturer": "Electronics Corp",
             "availableItems": 20,
@@ -285,13 +284,8 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
             "description": "This is the updated description"
             }
 
-
-            //lets insert some dummy data before actually testing this api just to initialize the productId
-            
-            // productId = productData.productId;
-
             chai.request(app)
-            .put('/api/products/'+data.productId)
+            .put('/api/products/'+ data.productId)
             .set('Authorization', `Bearer ${token}`)
             .send(updatedData)
             .end((err, response)=>{
@@ -305,7 +299,7 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
         
         //Testing DELETE /products/:id
         //This api requires authentication and admin authrization
-        it("It should get status 200 OK when hitting DELETE /api/products",(done)=>{
+        it("It should get status 200 OK when hitting DELETE /api/products/:id",(done)=>{
             chai.request(app)
             .delete('/api/products/'+data.productId)
             .set('Authorization', `Bearer ${token}`)
@@ -318,5 +312,46 @@ describe("Testing CRUD Apis for upGrad-E-Shop", ()=>{
             })
 
        }) 
+    })
+
+
+    //This api requires authentication
+    describe("TESTING POST /api/orders ENDPOINT", ()=>{
+        //generate an access-token first to test the rest of the apis
+        const user = {
+            "_id": "616ea05bc11369629f080889",
+            "email": "ishwar.soni@upgrad.com",
+            "first_name": "ishwar",
+            "last_name": "soni",
+            "password": "$2b$10$MjrX1uExkrn3I.7VtyjOPefb9aJuIEH4cRgviyeCgk9LhQU8O3wBK",
+            "role": "admin",
+            "contact": "1234567890",
+            "createdAt": "2021-10-18T14:20:03.556Z",
+            "updatedAt": "2021-10-18T14:20:03.556Z",
+            "__v": 0
+        }
+
+        //pass the user as payload to generate the token
+        var token = generateAccessToken(user);
+
+        it("It should get Status 200 and place order in db when hitting POST /api/orders endpoint", (done)=>{
+              chai.request(app)
+              .post('/api/orders')
+              .set('Authorization', `Bearer ${token}`)
+               /*****PLEASE ENSURE TO ENTER A id by the field name productId not the _id****/
+               /**the addressId is the _id field of the address document*/
+              .send({
+                  "productId": 65237948,
+                  "addressId": "61705c06d5d46bbaef1182bd",  
+                  "quantity": 1
+              })
+              .end((err, response)=>{
+                  expect(err).to.be.a('null');
+                  response.should.have.status(200);
+                  response.body.should.be.a('object');
+                  done();
+              })
+        })
+
     })
 })
